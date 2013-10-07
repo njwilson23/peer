@@ -24,7 +24,7 @@ if len(other_args) == 0:
     """
     sys.exit()
 
-search_dirs = ['Documents', 'Downloads']
+search_dirs = (os.getcwd(), 'Documents', 'Downloads')
 eitherin = lambda L, s: True in ((a in s) for a in L)
 
 sterm = '*' + reduce(lambda a,b: a+'*'+b, other_args) + '*'
