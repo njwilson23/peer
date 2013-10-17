@@ -9,19 +9,23 @@ import subprocess
 import traceback
 import getopt
 
-options, other_args = getopt.gnu_getopt(sys.argv[1:], "lf:", [])
+options, other_args = getopt.gnu_getopt(sys.argv[1:], "lpf:", ["help"])
 optdict = dict(options)
 
-if len(other_args) == 0:
+if "--help" in optdict or len(other_args) == 0:
     print """
-    USAGE: readpdf [-f filter_term] [-l] search_terms
+    USAGE: {0} [-f filter_term] [-l] search_terms
 
         search_terms    One or more case-insensitive words to search for
 
         -f filter_term  Name of a directory to filter by
 
         -l              List matches and quit
-    """
+
+        -p              Include file paths
+
+        --help          Print this message
+    """.format(os.path.split(__file__)[-1])
     sys.exit()
 
 search_dirs = (os.getcwd(), 'Documents', 'Downloads')
@@ -39,8 +43,12 @@ except subprocess.CalledProcessError:
     results = []
 
 # Filter by a directory arg
-if '-f' in optdict.keys():
+if '-f' in optdict:
     results = filter(lambda s: optdict['-f'] in s.split('/'), results)
+
+# Strip paths
+if '-p' not in optdict:
+    results = map(lambda s: os.path.split(s)[1], results)
 
 # Print them to screen and exit
 for i, result in enumerate(results):
