@@ -48,11 +48,13 @@ if '-f' in optdict:
 
 # Strip paths
 if '-p' not in optdict:
-    results = map(lambda s: os.path.split(s)[1], results)
+    ppresults = map(lambda s: os.path.split(s)[1], results)
+else:
+    ppresult = results
 
 # Print them to screen and exit
-for i, result in enumerate(results):
-    print i+1,'\t', result
+for i, ppresult in enumerate(ppresults):
+    print i+1,'\t', ppresult
     if i > 10:
         break
 
