@@ -50,7 +50,7 @@ if '-f' in optdict:
 if '-p' not in optdict:
     ppresults = map(lambda s: os.path.split(s)[1], results)
 else:
-    ppresult = results
+    ppresults = results
 
 # Print them to screen and exit
 for i, ppresult in enumerate(ppresults):
