@@ -25,6 +25,13 @@ if "--help" in optdict or len(other_args) == 0:
         -p              Include file paths
 
         --help          Print this message
+
+    CONFIG:
+
+        {0} can use a ".pyrrc" config file to specify the directories to search.
+        The config file will be searched for first in the working directory, and
+        next in the home directory ($HOME).
+
     """.format(os.path.split(__file__)[-1])
     sys.exit()
 
