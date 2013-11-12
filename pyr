@@ -6,6 +6,9 @@
 import sys
 import os
 import argparse
+import itertools
+import fnmatch
+import operator
 import subprocess
 import traceback
 
@@ -22,26 +25,37 @@ parser.add_argument("keywords", nargs="+", metavar="keyword", help="Search terms
 
 args = parser.parse_args()
 
-search_dirs = (os.getcwd(), 'Documents', 'Downloads')
-eitherin = lambda L, s: True in ((a in s) for a in L)
+search_roots = map(os.path.expanduser, ('~/Documents/pdfs', '~/Downloads'))
 
-sterm = '*' + reduce(lambda a,b: a+'*'+b, args.keywords) + '*'
+def eithercase(s):
+    return reduce(operator.add, ("["+c.upper()+c.lower()+"]" for c in s))
 
-# Use locate to search for PDFs
-try:
-    results = subprocess.check_output(('locate', '-e', '-b', '-i', sterm))
-    results = results.split('\n')
-    results = filter(lambda s: s[-4:].lower()=='.pdf', results)
-    results = filter(lambda s: eitherin(search_dirs, s), results)
-except subprocess.CalledProcessError:
-    results = []
+sterm = '*' + reduce(lambda a,b: a+'*'+b, map(eithercase, args.keywords)) + '*'
+
+# Search the directory subtree for matches
+def matcher(cmpstr):
+    return fnmatch.fnmatch(cmpstr, sterm)
+
+search_dirs = itertools.chain((os.getcwd(),),
+        *((directory for directory,_,_ in os.walk(root)) for root in search_roots))
+
+results = []
+
+for directory in search_dirs:
+    if len(results) > 20:
+        break
+    pdfs = filter(lambda s: s.lower().endswith(".pdf"), os.listdir(directory))
+    matches = map(matcher, pdfs)
+    chunk_results = [os.path.join(directory, pdf)
+                        for ismatch, pdf in zip(matches, pdfs) if ismatch]
+    results.extend(chunk_results)
 
 # Filter by a directory arg
 if args.f:
     results = filter(lambda s: args.f in s.split('/'), results)
 
 # Strip paths
-if args.p:
+if not args.p:
     ppresults = map(lambda s: os.path.split(s)[1], results)
 else:
     ppresults = results
