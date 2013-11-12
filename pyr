@@ -18,9 +18,9 @@ Search for and open a PDF with the given name. Searches within a specified
 list of directories, hardcoded as *search_dirs*. For now, only check whether
 the path contains the directory name, which happens to be good enough.""")
 
-parser.add_argument("-l", action="store_true", help="List matches and exit")
-parser.add_argument("-p", action="store_true", help="Include file paths")
-parser.add_argument("-f", help="Name of a directory to filter by")
+parser.add_argument("-l", "--list", action="store_true", help="List matches and exit")
+parser.add_argument("-p", "--path", action="store_true", help="Include file paths")
+parser.add_argument("-f", "--filter-dir", help="Name of a directory to filter by")
 parser.add_argument("keywords", nargs="+", metavar="keyword", help="Search terms")
 
 args = parser.parse_args()
@@ -51,11 +51,11 @@ for directory in search_dirs:
     results.extend(chunk_results)
 
 # Filter by a directory arg
-if args.f:
-    results = filter(lambda s: args.f in s.split('/'), results)
+if args.filter_dir:
+    results = filter(lambda s: args.filter_dir in s.split('/'), results)
 
 # Strip paths
-if not args.p:
+if not args.path:
     ppresults = map(lambda s: os.path.split(s)[1], results)
 else:
     ppresults = results
@@ -69,7 +69,7 @@ if len(ppresults) > 0:
 else:
     print "no matches found"
 
-if (not args.l) and (len(results) > 0):
+if (not args.list) and (len(results) > 0):
     proc = subprocess.Popen(('evince', results[0]), stdin=None, stdout=None,
                             stderr=None, close_fds=True, shell=False)
 
