@@ -5,33 +5,27 @@
 
 import sys
 import os
+import argparse
 import subprocess
 import traceback
-import getopt
 
-options, other_args = getopt.gnu_getopt(sys.argv[1:], "lpf:", ["help"])
-optdict = dict(options)
 
-if "--help" in optdict or len(other_args) == 0:
-    print """
-    USAGE: {0} [-f filter_term] [-l] search_terms
+parser = argparse.ArgumentParser(description= """\
+Search for and open a PDF with the given name. Searches within a specified
+list of directories, hardcoded as *search_dirs*. For now, only check whether
+the path contains the directory name, which happens to be good enough.""")
 
-        search_terms    One or more case-insensitive words to search for
+parser.add_argument("-l", action="store_true", help="List matches and exit")
+parser.add_argument("-p", action="store_true", help="Include file paths")
+parser.add_argument("-f", help="Name of a directory to filter by")
+parser.add_argument("keywords", nargs="+", metavar="keyword", help="Search terms")
 
-        -f filter_term  Name of a directory to filter by
-
-        -l              List matches and quit
-
-        -p              Include file paths
-
-        --help          Print this message
-    """.format(os.path.split(__file__)[-1])
-    sys.exit()
+args = parser.parse_args()
 
 search_dirs = (os.getcwd(), 'Documents', 'Downloads')
 eitherin = lambda L, s: True in ((a in s) for a in L)
 
-sterm = '*' + reduce(lambda a,b: a+'*'+b, other_args) + '*'
+sterm = '*' + reduce(lambda a,b: a+'*'+b, args.keywords) + '*'
 
 # Use locate to search for PDFs
 try:
@@ -43,22 +37,25 @@ except subprocess.CalledProcessError:
     results = []
 
 # Filter by a directory arg
-if '-f' in optdict:
-    results = filter(lambda s: optdict['-f'] in s.split('/'), results)
+if args.f:
+    results = filter(lambda s: args.f in s.split('/'), results)
 
 # Strip paths
-if '-p' not in optdict:
+if args.p:
     ppresults = map(lambda s: os.path.split(s)[1], results)
 else:
     ppresults = results
 
 # Print them to screen and exit
-for i, ppresult in enumerate(ppresults):
-    print i+1,'\t', ppresult
-    if i > 10:
-        break
+if len(ppresults) > 0:
+    for i, ppresult in enumerate(ppresults):
+        print i+1,'\t', ppresult
+        if i > 10:
+            break
+else:
+    print "no matches found"
 
-if ('-l' not in optdict) and (len(results) > 0):
+if (not args.l) and (len(results) > 0):
     proc = subprocess.Popen(('evince', results[0]), stdin=None, stdout=None,
                             stderr=None, close_fds=True, shell=False)
 
