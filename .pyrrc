@@ -1,3 +1,2 @@
-
-search_dirs = ["Documents", "Downloads"]
-
+reader          evince
+search_roots    ~/Downloads ~/Documents/pdfs

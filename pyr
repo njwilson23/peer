@@ -13,6 +13,44 @@ import subprocess
 import traceback
 
 
+def findconfig():
+    """ Search the current directory, then the home directory for a
+    configuration file. """
+    home = os.path.expanduser("~")
+    cwd = os.getcwd()
+    if os.path.isfile(os.path.join(cwd, ".pyrrc")):
+        path = os.path.join(cwd, ".pyrrc")
+    elif os.path.isfile(os.path.join(home, ".pyrrc")):
+        path = os.path.join(home, ".pyrrc")
+    else:
+        path = None
+    return path
+
+
+def loadconfig(path):
+    """ If *path* is a string, attempt to load configuration options. Otherwise,
+    load a default set of options. """
+    if path is not None:
+        config = dict()
+        #identity = lambda a: a
+        configkeys = {"reader": str.strip,
+                      "search_roots": str.split}
+        with open(path, "r") as f:
+            for line in f.readlines():
+                head, tail = line.split(None, 1)
+                if head in configkeys:
+                    config[head] = configkeys[head](tail)
+
+        if False in (key in config for key in configkeys):
+            sys.stderr.write("Configuration file invalid\n")
+            sys.exit(1)
+
+    else:
+        searchdirs = ('~/Documents/pdfs', '~/Downloads')
+        config = dict(reader="evince", search_roots=searchdirs)
+    return config
+
+
 parser = argparse.ArgumentParser(description= """\
 Search for and optionally open a PDF matching the given keywords. Searches
 within a specified list of directories, hardcoded as *search_dirs*.
@@ -28,7 +66,8 @@ parser.add_argument("keywords", nargs="+", metavar="keyword", help="search terms
 
 args = parser.parse_args()
 
-search_roots = map(os.path.expanduser, ('~/Documents/pdfs', '~/Downloads'))
+config = loadconfig(findconfig())
+search_roots = [os.path.expanduser(d) for d in config["search_roots"]]
 
 def eithercase(s):
     return reduce(operator.add, ("["+c.upper()+c.lower()+"]" for c in s))
@@ -73,6 +112,6 @@ else:
     print "no matches found"
 
 if (not args.list) and (len(results) > 0):
-    proc = subprocess.Popen(('evince', results[0]), stdin=None, stdout=None,
+    proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
                             stderr=None, close_fds=True, shell=False)
 
