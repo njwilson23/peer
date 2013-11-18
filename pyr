@@ -18,11 +18,16 @@ Search for and optionally open a PDF matching the given keywords. Searches
 within a specified list of directories, hardcoded as *search_dirs*.""")
 
 parser.add_argument("-l", "--list", action="store_true", help="list matches and exit")
+parser.add_argument("-o", "--open", action="store_true", help="open best match with the configured reader")
 parser.add_argument("-p", "--path", action="store_true", help="include file paths")
-parser.add_argument("-f", "--filter-dir", help="name of a directory to filter by")
+parser.add_argument("-f", "--filter-dir", help="name of a directory to filter on")
 parser.add_argument("keywords", nargs="+", metavar="keyword", help="search terms")
 
 args = parser.parse_args()
+
+if args.list:
+    import warnings
+    warnings.warn("the --list (-l) option is now default and will be removed")
 
 search_roots = map(os.path.expanduser, ('~/Documents/pdfs', '~/Downloads'))
 
@@ -68,7 +73,7 @@ if len(ppresults) > 0:
 else:
     print "no matches found"
 
-if (not args.list) and (len(results) > 0):
+if args.open and (len(results) > 0):
     proc = subprocess.Popen(('evince', results[0]), stdin=None, stdout=None,
                             stderr=None, close_fds=True, shell=False)
 
