@@ -65,11 +65,11 @@ parser.add_argument("-p", "--path", action="store_true", help="include file path
 parser.add_argument("-f", "--filter-dir", help="name of a directory to filter on")
 parser.add_argument("keywords", nargs="+", metavar="keyword", help="search terms")
 
+args = parser.parse_args()
+
 if args.list:
     import warnings
     warnings.warn("the --list (-l) option is now default and will be removed")
-
-args = parser.parse_args()
 
 config = loadconfig(findconfig())
 search_roots = [os.path.expanduser(d) for d in config["search_roots"]]
@@ -116,12 +116,7 @@ if len(ppresults) > 0:
 else:
     print "no matches found"
 
-<<<<<<< HEAD
-if (not args.list) and (len(results) > 0):
-    proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
-=======
 if args.open and (len(results) > 0):
-    proc = subprocess.Popen(('evince', results[0]), stdin=None, stdout=None,
->>>>>>> master
+    proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
                             stderr=None, close_fds=True, shell=False)
 
