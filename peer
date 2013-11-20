@@ -19,10 +19,10 @@ def findconfig():
     configuration file. """
     home = os.path.expanduser("~")
     cwd = os.getcwd()
-    if os.path.isfile(os.path.join(cwd, ".pyrrc.json")):
-        path = os.path.join(cwd, ".pyrrc.json")
-    elif os.path.isfile(os.path.join(home, ".pyrrc.json")):
-        path = os.path.join(home, ".pyrrc.json")
+    if os.path.isfile(os.path.join(cwd, ".peerrc.json")):
+        path = os.path.join(cwd, ".peerrc.json")
+    elif os.path.isfile(os.path.join(home, ".peerrc.json")):
+        path = os.path.join(home, ".peerrc.json")
     else:
         path = None
     return path
@@ -42,9 +42,9 @@ parser = argparse.ArgumentParser(description= """\
 Search for and optionally open a PDF matching the given keywords. Searches
 within a specified list of directories, hardcoded as *search_dirs*.
 
-It is possible to use a ".pyrrc" config file to specify the directories to
+It is possible to use a ".peerrc.json" config file to specify the directories to
 search. The config file will be searched for first in the working directory, and
-next in the home directory ($HOME). """)
+next in the home directory ($HOME).""")
 
 parser.add_argument("-l", "--list", action="store_true", help="list matches and exit")
 parser.add_argument("-o", "--open", action="store_true", help="open best match with the configured reader")
