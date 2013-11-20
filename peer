@@ -49,6 +49,7 @@ next in the home directory ($HOME).""")
 parser.add_argument("-l", "--list", action="store_true", help="list matches and exit")
 parser.add_argument("-o", "--open", action="store_true", help="open best match with the configured reader")
 parser.add_argument("-p", "--path", action="store_true", help="include file paths")
+parser.add_argument("-c", "--case-sensitive", action="store_true", help="match case sensitive names")
 parser.add_argument("-f", "--filter-dir", help="name of a directory to filter on")
 parser.add_argument("keywords", nargs="+", metavar="keyword", help="search terms")
 
@@ -61,10 +62,14 @@ if args.list:
 config = loadconfig(findconfig())
 search_roots = [os.path.expanduser(d) for d in config["search_roots"]]
 
+# Construct the search term
 def eithercase(s):
     return reduce(operator.add, ("["+c.upper()+c.lower()+"]" for c in s))
 
-sterm = '*' + reduce(lambda a,b: a+'*'+b, map(eithercase, args.keywords)) + '*'
+if args.case_sensitive:
+    sterm = '*' + reduce(lambda a,b: a+'*'+b, args.keywords) + '*'
+else:
+    sterm = '*' + reduce(lambda a,b: a+'*'+b, map(eithercase, args.keywords)) + '*'
 
 # Search the directory subtree for matches
 def matcher(cmpstr):
