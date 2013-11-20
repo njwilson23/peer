@@ -76,12 +76,11 @@ def find_pdfs(phrase, search_roots):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description= """\
-Search for and optionally open a PDF matching the given keywords. Searches
-within a specified list of directories, hardcoded as *search_dirs*.
+Search for and optionally open a PDF matching the given keywords.
 
 It is possible to use a ".peerrc.json" config file to specify the directories to
-search. The config file will be searched for first in the working directory, and
-next in the home directory ($HOME).""")
+search and the program to use to upen PDFs. The config file will be looked for
+first in the working directory, and next in the home directory.""")
     
     parser.add_argument("-l", "--list", action="store_true",
                         help="list matches and exit")
