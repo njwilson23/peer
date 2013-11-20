@@ -26,57 +26,37 @@ def findconfig():
     return path
 
 
-def loadconfig(path):
+def loadconfig(path=None):
+    """ If given a path, load a JSON configuration file. Otherwise, supply a
+    minimal default configuration. """
     if path is None:
         cfg = dict(reader="evince", search_roots=["~/Downloads", "~/Documents"])
 
     else:
         with open(path, "r") as f:
             cfg = json.load(f)
+    cfg["search_roots"] = [os.path.expanduser(d) for d in cfg["search_roots"]]
     return cfg
 
 
-parser = argparse.ArgumentParser(description= """\
-Search for and optionally open a PDF matching the given keywords. Searches
-within a specified list of directories, hardcoded as *search_dirs*.
-
-It is possible to use a ".peerrc.json" config file to specify the directories to
-search. The config file will be searched for first in the working directory, and
-next in the home directory ($HOME).""")
-
-parser.add_argument("-l", "--list", action="store_true", help="list matches and exit")
-parser.add_argument("-o", "--open", action="store_true", help="open best match with the configured reader")
-parser.add_argument("-p", "--path", action="store_true", help="include file paths")
-parser.add_argument("-c", "--case-sensitive", action="store_true", help="match case sensitive names")
-parser.add_argument("-f", "--filter-dir", help="name of a directory to filter on")
-parser.add_argument("keywords", nargs="+", metavar="keyword", help="search terms")
-
-args = parser.parse_args()
-
-if args.list:
-    import warnings
-    warnings.warn("the --list (-l) option is now default and will be removed")
-
-config = loadconfig(findconfig())
-search_roots = [os.path.expanduser(d) for d in config["search_roots"]]
+def build_search_term(kw, case_sensitive=True):
+    """ Build a search term that can be used by fnmatch from a list of key
+    words. """
+    def eithercase(s):
+        return reduce(operator.add, ("["+c.upper()+c.lower()+"]" for c in s))
+    
+    if args.case_sensitive:
+        sterm = '*' + reduce(lambda a,b: a+'*'+b, args.keywords) + '*'
+    else:
+        sterm = '*' + reduce(lambda a,b: a+'*'+b, map(eithercase, args.keywords)) + '*'
+    return sterm
 
 
-# Construct the search term
-def eithercase(s):
-    return reduce(operator.add, ("["+c.upper()+c.lower()+"]" for c in s))
-
-if args.case_sensitive:
-    sterm = '*' + reduce(lambda a,b: a+'*'+b, args.keywords) + '*'
-else:
-    sterm = '*' + reduce(lambda a,b: a+'*'+b, map(eithercase, args.keywords)) + '*'
-
-
-# Search the directory subtree for matches
-def find_pdfs(kw, search_roots):
+def find_pdfs(phrase, search_roots):
     """ Walk an iterable of root directories searching for *.pdf files
-    satisfying *keyword*. """
+    satisfying *phrase*. """
     def matcher(cmpstr):
-        return fnmatch.fnmatch(cmpstr, kw)
+        return fnmatch.fnmatch(cmpstr, phrase)
     
     search_dirs = itertools.chain((os.getcwd(),),
             *((directory for directory,_,_ in os.walk(root)) for root in search_roots))
@@ -93,31 +73,64 @@ def find_pdfs(kw, search_roots):
         results.extend(chunk_results)
     return results
 
-results = find_pdfs(sterm, search_roots)
+if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description= """\
+Search for and optionally open a PDF matching the given keywords. Searches
+within a specified list of directories, hardcoded as *search_dirs*.
 
-# Filter by a directory arg
-if args.filter_dir:
-    results = filter(lambda s: args.filter_dir in s.split('/'), results)
-
-
-# Strip paths
-if not args.path:
-    ppresults = map(lambda s: os.path.split(s)[1], results)
-else:
-    ppresults = results
-
-
-# Print them to screen and exit
-if len(ppresults) > 0:
-    for i, ppresult in enumerate(ppresults):
-        print i+1,'\t', ppresult
-        if i > 10:
-            break
-else:
-    print "no matches found"
-
-if args.open and (len(results) > 0):
-    proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
-                            stderr=None, close_fds=True, shell=False)
+It is possible to use a ".peerrc.json" config file to specify the directories to
+search. The config file will be searched for first in the working directory, and
+next in the home directory ($HOME).""")
+    
+    parser.add_argument("-l", "--list", action="store_true",
+                        help="list matches and exit")
+    parser.add_argument("-o", "--open", action="store_true",
+                        help="open best match with the configured reader")
+    parser.add_argument("-p", "--path", action="store_true",
+                        help="include file paths")
+    parser.add_argument("-c", "--case-sensitive", action="store_true",
+                        help="match case sensitive names")
+    parser.add_argument("-f", "--filter-dir",
+                        help="name of a directory to filter on")
+    parser.add_argument("keywords", nargs="+", metavar="keyword",
+                        help="search terms")
+    
+    args = parser.parse_args()
+    
+    if args.list:
+        import warnings
+        warnings.warn("the --list (-l) option is now default and will be removed")
+    
+    config = loadconfig(findconfig())
+    search_roots = config["search_roots"]
+    
+    # Construct the search term
+    sterm = build_search_term(args.keywords, case_sensitive=args.case_sensitive)
+    
+    # Search the directory subtree for matches
+    results = find_pdfs(sterm, search_roots)
+    
+    # Filter by a directory arg
+    if args.filter_dir:
+        results = filter(lambda s: args.filter_dir in s.split('/'), results)
+    
+    # Strip paths
+    if not args.path:
+        ppresults = map(lambda s: os.path.split(s)[1], results)
+    else:
+        ppresults = results
+    
+    # Print them to screen and exit
+    if len(ppresults) > 0:
+        for i, ppresult in enumerate(ppresults):
+            print i+1,'\t', ppresult
+            if i > 10:
+                break
+    else:
+        print "no matches found"
+    
+    if args.open and (len(results) > 0):
+        proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
+                                stderr=None, close_fds=True, shell=False)
 
