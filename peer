@@ -11,8 +11,6 @@ import itertools
 import fnmatch
 import operator
 import subprocess
-import traceback
-
 
 def findconfig():
     """ Search the current directory, then the home directory for a
@@ -62,6 +60,7 @@ if args.list:
 config = loadconfig(findconfig())
 search_roots = [os.path.expanduser(d) for d in config["search_roots"]]
 
+
 # Construct the search term
 def eithercase(s):
     return reduce(operator.add, ("["+c.upper()+c.lower()+"]" for c in s))
@@ -71,33 +70,43 @@ if args.case_sensitive:
 else:
     sterm = '*' + reduce(lambda a,b: a+'*'+b, map(eithercase, args.keywords)) + '*'
 
+
 # Search the directory subtree for matches
-def matcher(cmpstr):
-    return fnmatch.fnmatch(cmpstr, sterm)
+def find_pdfs(kw, search_roots):
+    """ Walk an iterable of root directories searching for *.pdf files
+    satisfying *keyword*. """
+    def matcher(cmpstr):
+        return fnmatch.fnmatch(cmpstr, kw)
+    
+    search_dirs = itertools.chain((os.getcwd(),),
+            *((directory for directory,_,_ in os.walk(root)) for root in search_roots))
+    
+    results = []
+    
+    for directory in search_dirs:
+        if len(results) > 20:
+            break
+        pdfs = filter(lambda s: s.lower().endswith(".pdf"), os.listdir(directory))
+        matches = map(matcher, pdfs)
+        chunk_results = [os.path.join(directory, pdf)
+                            for ismatch, pdf in zip(matches, pdfs) if ismatch]
+        results.extend(chunk_results)
+    return results
 
-search_dirs = itertools.chain((os.getcwd(),),
-        *((directory for directory,_,_ in os.walk(root)) for root in search_roots))
+results = find_pdfs(sterm, search_roots)
 
-results = []
-
-for directory in search_dirs:
-    if len(results) > 20:
-        break
-    pdfs = filter(lambda s: s.lower().endswith(".pdf"), os.listdir(directory))
-    matches = map(matcher, pdfs)
-    chunk_results = [os.path.join(directory, pdf)
-                        for ismatch, pdf in zip(matches, pdfs) if ismatch]
-    results.extend(chunk_results)
 
 # Filter by a directory arg
 if args.filter_dir:
     results = filter(lambda s: args.filter_dir in s.split('/'), results)
+
 
 # Strip paths
 if not args.path:
     ppresults = map(lambda s: os.path.split(s)[1], results)
 else:
     ppresults = results
+
 
 # Print them to screen and exit
 if len(ppresults) > 0:
