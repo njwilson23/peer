@@ -5,6 +5,7 @@
 
 import sys
 import os
+import json
 import argparse
 import itertools
 import fnmatch
@@ -18,37 +19,23 @@ def findconfig():
     configuration file. """
     home = os.path.expanduser("~")
     cwd = os.getcwd()
-    if os.path.isfile(os.path.join(cwd, ".pyrrc")):
-        path = os.path.join(cwd, ".pyrrc")
-    elif os.path.isfile(os.path.join(home, ".pyrrc")):
-        path = os.path.join(home, ".pyrrc")
+    if os.path.isfile(os.path.join(cwd, ".pyrrc.json")):
+        path = os.path.join(cwd, ".pyrrc.json")
+    elif os.path.isfile(os.path.join(home, ".pyrrc.json")):
+        path = os.path.join(home, ".pyrrc.json")
     else:
         path = None
     return path
 
 
 def loadconfig(path):
-    """ If *path* is a string, attempt to load configuration options. Otherwise,
-    load a default set of options. """
-    if path is not None:
-        config = dict()
-        #identity = lambda a: a
-        configkeys = {"reader": str.strip,
-                      "search_roots": str.split}
-        with open(path, "r") as f:
-            for line in f.readlines():
-                head, tail = line.split(None, 1)
-                if head in configkeys:
-                    config[head] = configkeys[head](tail)
-
-        if False in (key in config for key in configkeys):
-            sys.stderr.write("Configuration file invalid\n")
-            sys.exit(1)
+    if path is None:
+        cfg = dict(reader="evince", search_roots=["~/Downloads", "~/Documents"])
 
     else:
-        searchdirs = ('~/Documents/pdfs', '~/Downloads')
-        config = dict(reader="evince", search_roots=searchdirs)
-    return config
+        with open(path, "r") as f:
+            cfg = json.load(f)
+    return cfg
 
 
 parser = argparse.ArgumentParser(description= """\
