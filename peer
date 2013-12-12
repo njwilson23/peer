@@ -92,6 +92,9 @@ first in the working directory, and next in the home directory.""")
                         help="match case sensitive names")
     parser.add_argument("-f", "--filter-dir",
                         help="name of a directory to filter on")
+    parser.add_argument("-r", "--raw", action="store_true",
+                        help="print a 'raw' version of the top hit to stdout "
+                             "for piping into other programs")
     parser.add_argument("keywords", nargs="+", metavar="keyword",
                         help="search terms")
     
@@ -122,10 +125,13 @@ first in the working directory, and next in the home directory.""")
     
     # Print them to screen and exit
     if len(ppresults) > 0:
-        for i, ppresult in enumerate(ppresults):
-            print i+1,'\t', ppresult
-            if i > 10:
-                break
+        if args.raw:
+            sys.stdout.write(ppresults[0])
+        else:
+            for i, ppresult in enumerate(ppresults):
+                print i+1,'\t', ppresult
+                if i > 10:
+                    break
     else:
         print "no matches found"
     
