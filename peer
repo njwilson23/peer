@@ -11,6 +11,7 @@ import itertools
 import fnmatch
 import operator
 import subprocess
+import StringIO
 
 def findconfig():
     """ Search the current directory, then the home directory for a
@@ -130,6 +131,7 @@ first in the working directory, and next in the home directory.""")
         print "no matches found"
     
     if args.open and (len(results) > 0):
-        proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
-                                stderr=None, close_fds=True, shell=False)
+        with open(os.path.expanduser("~/.peer.log"), "w") as ferr:
+            proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
+                                stderr=ferr, close_fds=True, shell=False)
 
