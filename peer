@@ -11,7 +11,6 @@ import itertools
 import fnmatch
 import operator
 import subprocess
-import StringIO
 
 def findconfig():
     """ Search the current directory, then the home directory for a
