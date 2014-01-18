@@ -128,8 +128,8 @@ first in the working directory, and next in the home directory.""")
 
     # Remove duplicates
     if not args.all:
-        ppresults = [s for s in ppresults
-                     if os.path.split(s)[1] not in results_fnm]
+        ppresults = [s for i, s in enumerate(ppresults)
+                     if os.path.split(s)[1] not in results_fnm[i+1:]]
     
     # Print them to screen and exit
     if len(ppresults) > 0:
