@@ -1,15 +1,8 @@
 """ Basic BibTeX interface.
 
-Design:
-
-peer will typically need one-time access to a BibTeX file in order to search
-for entries matching a particular author, title, year, or journal.
-
-In order to make this fast, I'll define a `scan` function that takes BibTeX
-file ID and a list of match functions as input.
-
-For each entry in the BibTeX file, test each provided function (using a `map`,
-and return the union of positive matches.
+Treats a BibTeX file as a collection of entries (read by the `readentries`
+function. List of entries can be searched using the `scan` function, which
+returns a list of matches.
 """
 
 from collections import namedtuple
