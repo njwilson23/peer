@@ -84,6 +84,8 @@ first in the working directory, and next in the home directory.""")
     
     parser.add_argument("-l", "--list", action="store_true",
                         help="list matches and exit")
+    parser.add_argument("-a", "--all", action="store_true",
+                        help="include duplicate matches in list")
     parser.add_argument("-o", "--open", action="store_true",
                         help="open best match with the configured reader")
     parser.add_argument("-p", "--path", action="store_true",
@@ -118,10 +120,16 @@ first in the working directory, and next in the home directory.""")
         results = filter(lambda s: args.filter_dir in s.split('/'), results)
     
     # Strip paths
+    results_fnm = map(lambda s: os.path.split(s)[1], results)
     if not args.path:
-        ppresults = map(lambda s: os.path.split(s)[1], results)
+        ppresults = results_fnm
     else:
         ppresults = results
+
+    # Remove duplicates
+    if not args.all:
+        ppresults = [s for s in ppresults
+                     if os.path.split(s)[1] not in results_fnm]
     
     # Print them to screen and exit
     if len(ppresults) > 0:
