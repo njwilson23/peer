@@ -86,7 +86,7 @@ first in the working directory, and next in the home directory.""")
                         help="list matches and exit")
     parser.add_argument("-a", "--all", action="store_true",
                         help="include duplicate matches in list")
-    parser.add_argument("-o", "--open", action="store_true",
+    parser.add_argument("-o", "--open", nargs="?", const=1, default=False,
                         help="open best match with the configured reader")
     parser.add_argument("-p", "--path", action="store_true",
                         help="include file paths")
@@ -101,6 +101,12 @@ first in the working directory, and next in the home directory.""")
                         help="search terms")
     
     args = parser.parse_args()
+    if args.open:
+        try:
+            nopen = int(args.open) - 1
+        except ValueError:
+            print("optional argument to -o must be integer")
+            sys.exit(0)
     
     if args.list:
         import warnings
@@ -143,7 +149,9 @@ first in the working directory, and next in the home directory.""")
         print "no matches found"
     
     if args.open and (len(results) > 0):
+        nopen = min(nopen, len(results), 10)
         with open(os.path.expanduser("~/.peer.log"), "w") as ferr:
-            proc = subprocess.Popen((config["reader"], results[0]), stdin=None, stdout=None,
-                                stderr=ferr, close_fds=True, shell=False)
+            proc = subprocess.Popen((config["reader"], results[nopen]),
+                                stdin=None, stdout=None, stderr=ferr,
+                                close_fds=True, shell=False)
 
