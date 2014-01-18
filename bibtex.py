@@ -13,68 +13,70 @@ and return the union of positive matches.
 """
 
 from collections import namedtuple
+import re
 
-BibEntry = namedtuple("Entry", ("authors", "title", "year", "journal"))
+BibEntry = namedtuple("Entry", ("author", "title", "year", "journal"))
 
 def parseline(s):
     """ Given a line from a BibTeX entry, try to return a key-value pair.
     Returns None if the key is not for the Title, Journal, Author, or Year. """
-    key = s.split("=", 1)[0].strip()
-    if key in ("Title", "Journal", "Author", "Year"):
-        value = s.split("=", 1)[1].strip().strip("{}")
+    key, value = s.split("=", 1)
+    key = key.strip()
+    value = value.strip().strip(",").strip("{").strip("}")
+
+    if key in ("Title", "Journal", "Author"):
         return (key, value)
+    elif key == "Year":
+        try:
+            return (key, int(value))
+        except ValueError:
+            return (key, None)
     else:
         return (key, None)
 
+def countbraces(s):
+    """ Count unescaped open (+1) and closed (-1) brackets in a string. """
+    return len(re.findall(r"(?<!\\){", s)) - len(re.findall(r"(?<!\\)}", s))
 
 def readentries(f):
     """ Return a list of BibTeX entries from a file-like object.
-
-    EXPERIMENTAL WIP STATE!
     """
     # State-machine implementation
     inentry = False
     entries = []
     d = dict()
 
-    for line in f:
-        if not inentry and (line.lstrip()[0] == "@"):
-            inentry = True
-        elif inentry and (line.lstrip() == "}"):
-            # WARNING! This is not robust to free-styling BibTeX entries - only
-            # for proof-of-concept
-            inentry = False
-            entry = BibEntry(authors=d["authors"],
-                             title=d["title"],
-                             year=d["year"],
-                             journal=d["journal"])
-            entries.append(entry)
-        elif inentry:
-            fieldname, value = parseline(line)
-            d[fieldname] = values
-        else:
+    for i, line in enumerate(f):
+
+        if (line[0] == "%") or (len(line.strip()) == 0):
             pass
 
+        elif inentry and (nbrac > 0) and ("=" in line):
+            fieldname, value = parseline(line)
+            d[fieldname] = value
+            nbrac += countbraces(line)
+
+        elif not inentry and (line.lstrip()[0] == "@"):
+            inentry = True
+            nbrac = countbraces(line)
+
+        elif inentry:
+            nbrac += countbraces(line)
+
+        if inentry and (nbrac == 0):
+            inentry = False
+            entry = BibEntry(author=d["Author"],
+                             title=d["Title"],
+                             year=d["Year"],
+                             journal=d["Journal"])
+            entries.append(entry)
+
     return entries
-
-
-
 
 def scan(entries, *funcs):
     """ Scan a list of BibTeX entries for items that match all `*funcs` and
     return a generator or positive matches. """
-    matches = []
-    for func in funcs:
-        f.seek(0)
-        matches.append(map(func, entries))
-
-    def matches_all(i, matches):
-        if False not in (m[i] for m in matches):
-            return True
-        else:
-            return False
-
-    return (entry for i, entry in entries if matches_all(i, matches))
-
-
+    def matches_all(entry):
+        return False not in (f(entry) for f in funcs)
+    return filter(matches_all, entries)
 
