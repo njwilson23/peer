@@ -8,7 +8,7 @@ returns a list of matches.
 from collections import namedtuple
 import re
 
-BibEntry = namedtuple("Entry", ("author", "title", "year", "journal"))
+BibEntry = namedtuple("Entry", ("author", "title", "year", "journal", "file"))
 
 def parseline(s):
     """ Given a line from a BibTeX entry, try to return a key-value pair.
@@ -17,9 +17,9 @@ def parseline(s):
     key = key.strip()
     value = value.strip().strip(",").strip("{").strip("}")
 
-    if key in ("Title", "Journal", "Author"):
-        return (key, value)
-    elif key == "Year":
+    if key.lower() in ("title", "journal", "author", "file"):
+        return (key.lower(), value)
+    elif key == "year":
         try:
             return (key, int(value))
         except ValueError:
@@ -58,10 +58,11 @@ def readentries(f):
 
         if inentry and (nbrac == 0):
             inentry = False
-            entry = BibEntry(author=d["Author"],
-                             title=d["Title"],
-                             year=d["Year"],
-                             journal=d["Journal"])
+            entry = BibEntry(author=d.get("author", ""),
+                             title=d.get("title", ""),
+                             year=d.get("year", ""),
+                             journal=d.get("journal", ""),
+                             file=d.get("file", ""))
             entries.append(entry)
 
     return entries
