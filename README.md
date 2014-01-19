@@ -13,12 +13,12 @@ the first result, use
     peer [author] [date] [keyword] -o
 
 Right now, `peer` only searches filenames, although integration with BibTeX
-databased is something I'm working on.
+databases is something I'm working on.
 
 ## Piping
 
-It's possible to pipe results in a Unix-y way, e.g. to do a regex search of
-article text:
+It's possible to pipe results in a Unix-y way. For example, to do a regex search
+of article text:
 
     peer -rp [author] | xargs less | grep -e [pattern]
 
