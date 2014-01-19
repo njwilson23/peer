@@ -3,5 +3,8 @@
     "search_roots": [
         "~/Downloads",
         "~/Documents/pdfs"
+    ],
+    "bibtex_files": [
+        "references.bib"
     ]
 }

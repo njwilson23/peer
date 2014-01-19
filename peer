@@ -12,6 +12,8 @@ import fnmatch
 import operator
 import subprocess
 
+import bibtex
+
 def findconfig():
     """ Search the current directory, then the home directory for a
     configuration file. """
@@ -94,6 +96,9 @@ first in the working directory, and next in the home directory.""")
                         help="match case sensitive names")
     parser.add_argument("-f", "--filter-dir",
                         help="name of a directory to filter on")
+    parser.add_argument("-y", "--year",
+                        help="filter based on publication year (requires "
+                             "BibTeX file)")
     parser.add_argument("-r", "--raw", action="store_true",
                         help="print a 'raw' version of the top hit to stdout "
                              "for piping into other programs")
@@ -107,13 +112,27 @@ first in the working directory, and next in the home directory.""")
         except ValueError:
             print("optional argument to -o must be integer")
             sys.exit(0)
-    
+
     if args.list:
         import warnings
         warnings.warn("the --list (-l) option is now default and will be removed")
     
     config = loadconfig(findconfig())
     search_roots = config["search_roots"]
+
+    if args.year:
+        USE_BIBTEX = True
+
+        # Later move this code elsewhere
+        bibentries = []
+        for fnm in config["bibtex_files"]:
+            with open(fnm) as f:
+                bibentries += bibtex.readentries(f)
+        bibresults = bibtex.scan(bibentries, lambda a: a.year == int(args.year))
+        for i, entry in enumerate(bibresults):
+            print(entry.author, entry.title, entry.year, entry.file)
+            if i > 10:
+                break
     
     # Construct the search term
     sterm = build_search_term(args.keywords, case_sensitive=args.case_sensitive)
