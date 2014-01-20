@@ -92,8 +92,8 @@ first in the working directory, and next in the home directory.""")
                         help="include file paths")
     parser.add_argument("-c", "--case-sensitive", action="store_true",
                         help="match case sensitive names")
-    parser.add_argument("-f", "--filter-dir",
-                        help="name of a directory to filter on")
+    parser.add_argument("--dir", help="name a directory to search (overrides "
+                                      ".peerrc.json)")
     parser.add_argument("-r", "--raw", action="store_true",
                         help="print a 'raw' version of the top hit to stdout "
                              "for piping into other programs")
@@ -113,17 +113,16 @@ first in the working directory, and next in the home directory.""")
         warnings.warn("the --list (-l) option is now default and will be removed")
     
     config = loadconfig(findconfig())
-    search_roots = config["search_roots"]
+    if args.dir:
+        search_roots = [args.dir]
+    else:
+        search_roots = config["search_roots"]
     
     # Construct the search term
     sterm = build_search_term(args.keywords, case_sensitive=args.case_sensitive)
     
     # Search the directory subtree for matches
     results = find_pdfs(sterm, search_roots)
-    
-    # Filter by a directory arg
-    if args.filter_dir:
-        results = filter(lambda s: args.filter_dir in s.split('/'), results)
     
     # Strip paths
     results_fnm = map(lambda s: os.path.split(s)[1], results)
