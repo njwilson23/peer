@@ -61,14 +61,16 @@ def find_pdfs(phrase, search_roots):
         return fnmatch.fnmatch(cmpstr, phrase)
     
     search_dirs = itertools.chain((os.getcwd(),),
-            *((directory for directory,_,_ in os.walk(root)) for root in search_roots))
+            *((directory for directory,_,_ in os.walk(root)) 
+              for root in search_roots))
     
     results = []
     
     for directory in search_dirs:
         if len(results) > 20:
             break
-        pdfs = filter(lambda s: s.lower().endswith(".pdf"), os.listdir(directory))
+        pdfs = list(filter(lambda s: s.lower().endswith(".pdf"),
+                    os.listdir(directory)))
         matches = map(matcher, pdfs)
         chunk_results = [os.path.join(directory, pdf)
                             for ismatch, pdf in zip(matches, pdfs) if ismatch]
