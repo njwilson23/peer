@@ -1,0 +1,8 @@
+# This is the default PDF reader to use when invoked with the '-o' flag
+reader: "evince"
+
+# Search roots are the root nodes for the document scanner
+search_roots:
+  - "~/Downloads"
+  - "~/Documents/pdfs"
+

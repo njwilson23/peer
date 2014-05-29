@@ -5,7 +5,7 @@
 
 import sys
 import os
-import json
+import yaml
 import argparse
 import itertools
 import fnmatch
@@ -18,10 +18,10 @@ def findconfig():
     configuration file. """
     home = os.path.expanduser("~")
     cwd = os.getcwd()
-    if os.path.isfile(os.path.join(cwd, ".peerrc.json")):
-        path = os.path.join(cwd, ".peerrc.json")
-    elif os.path.isfile(os.path.join(home, ".peerrc.json")):
-        path = os.path.join(home, ".peerrc.json")
+    if os.path.isfile(os.path.join(cwd, ".peer.yaml")):
+        path = os.path.join(cwd, ".peer.yaml")
+    elif os.path.isfile(os.path.join(home, ".peer.yaml")):
+        path = os.path.join(home, ".peer.yaml")
     else:
         path = None
     return path
@@ -35,7 +35,7 @@ def loadconfig(path=None):
 
     else:
         with open(path, "r") as f:
-            cfg = json.load(f)
+            cfg = yaml.load(f)
     cfg["search_roots"] = [os.path.expanduser(d) for d in cfg["search_roots"]]
     return cfg
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description= """\
 Search for and optionally open a PDF matching the given keywords.
 
-It is possible to use a ".peerrc.json" config file to specify the directories to
+It is possible to use a ".peer.yaml" config file to specify the directories to
 search and the program to use to upen PDFs. The config file will be looked for
 first in the working directory, and next in the home directory.""")
     
@@ -97,7 +97,7 @@ first in the working directory, and next in the home directory.""")
     parser.add_argument("-c", "--case-sensitive", action="store_true",
                         help="match case sensitive names")
     parser.add_argument("--dir", help="name a directory to search (overrides "
-                                      ".peerrc.json)")
+                                      ".peer.yaml)")
     parser.add_argument("-r", "--raw", action="store_true",
                         help="print a 'raw' version of the top hit to stdout "
                              "for piping into other programs")
