@@ -1,7 +1,0 @@
-{
-    "reader": "evince",
-    "search_roots": [
-        "~/Downloads",
-        "~/Documents/pdfs"
-    ]
-}

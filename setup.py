@@ -1,6 +1,6 @@
 from distutils.core import setup
 setup(name='peer',
       author="Nat Wilson",
-      version='0.2',
+      version='0.3',
       scripts=['peer'],
       )
