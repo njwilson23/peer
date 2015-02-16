@@ -137,7 +137,7 @@ first in the working directory, and next in the home directory.""")
                    if os.path.split(s)[1] not in results_fnm[i+1:]]
     
     # Print them to screen and exit
-    if len(results) > 0:
+    if not args.open and len(results) > 0:
         if args.raw:
             sys.stdout.write(results[0])
         else:
