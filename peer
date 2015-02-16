@@ -146,12 +146,12 @@ first in the working directory, and next in the home directory.""")
                     print("{0}\t{1}".format(i+1, result))
                 else:
                     print("{0}\t{1}".format(i+1, os.path.split(result)[1]))
-    else:
-        print("no matches found")
-    
-    if args.open and (len(results) > 0):
+    elif args.open and (len(results) > 0):
         with open(os.path.expanduser("~/.peer.log"), "w") as ferr:
             proc = subprocess.Popen((config["reader"], results[nopen]),
                                 stdin=None, stdout=None, stderr=ferr,
                                 close_fds=True, shell=False)
+    else:
+        print("no matches found")
+    
 
