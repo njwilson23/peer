@@ -3,6 +3,9 @@
 `peer` is a commandline utility for searching and accessing a researcher's
 library of PDF files. 
 
+> **Update**
+> `peer` does what it does. Additional features like BibTeX parsing are developed seperately in a new project, [`peer2`](https://github.com/njwilson23/peer2).
+
 ## Installation
 
 Either `git clone` or
